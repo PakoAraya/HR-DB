@@ -1,0 +1,62 @@
+
+# ================================================
+# Databases and other files to be ignored
+# DBeaver and other SQL tools
+# ================================================
+
+# DBeaver Specific
+.metadata/
+.settings/
+.recommenders/
+.dbeaver/
+.worspace/
+dbeaver-data-sources.xml
+dbeaver-worspace/
+dbeaver-drivers/
+Scripts/
+General/
+
+# DBeaver Project Files
+.project
+.classpath
+*.launch
+
+# SQL Editor Temp Files
+*.bak
+*.tmp
+*.log
+
+# ================================================
+# OS Specific
+# ================================================
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# MacOS
+.DS_Store
+
+# Linux
+*~
+
+# ================================================
+# Database Dumps (No Upload)
+# ================================================
+
+*.dump
+*.sql.gz
+*.zip
+backups/
+dump/
+exports/
+
+# ================================================
+# General IDEs and Text Editors
+# ================================================
+
+.vscode/
+.idea/
+*.swp
+
+
