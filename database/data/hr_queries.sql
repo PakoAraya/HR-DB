@@ -78,6 +78,43 @@ JOIN countries c
 ON  r.region_id = c.region_id 
 
 
+/* 004
+ Run a query that displays employee's id, first and last names, start and end date of
+ the employee's job history
+ */
+SELECT e.employee_id, e.first_name, e.last_name, jh.start_date, jh.end_date 
+FROM employees e 
+JOIN job_history jh ON e.employee_id = jh.employee_id ;
+
+/* 005
+ Create a query that displays the employee's first and last names, with the title 
+ "Employee", their salary, commission percentage, commission and total salary
+ */
+SELECT 
+    -- Concatenate names to create a single employee string
+    CONCAT(e.first_name, ' ', e.last_name) AS Employee, 
+    e.salary AS Base_Salary, 
+    e.commission_pct AS Commission_Rate,
+    -- Calculate the actual commission amount (handling potential NULLs)
+    COALESCE(e.salary * e.commission_pct, 0) AS Commission_Amount,
+    -- Final calculation: Base Salary + Calculated Commission
+    e.salary + COALESCE(e.salary * e.commission_pct, 0) AS Total_Salary
+FROM employees e
+-- Order by the highest earners
+ORDER BY Total_Salary DESC;
+
+
+/* 006
+ Create a query that list the job title and salary of employees who are
+ managers, whose code is 100 or 125, and whose salary is greater than 
+ 6000
+ */
+SELECT j.job_title, e.salary 
+FROM employees e 
+JOIN jobs j ON e.job_id = j.job_id 
+WHERE e.employee_id = 100 OR e.employee_id = 125 AND e.salary > 6000;
+
+
 
 
 
