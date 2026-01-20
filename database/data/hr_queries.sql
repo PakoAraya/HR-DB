@@ -654,7 +654,13 @@ WHERE posicion = 1;
   Create a query that displays the department code, department name, and maximum 
   salary for each department.
 */
-
+SELECT 
+    d.department_id,
+    d.department_name, 
+    MAX(e.salary) AS 'Max Salary' 
+FROM employees e
+JOIN departments d ON e.department_id = d.department_id
+GROUP BY d.department_id, d.department_name; 
 
 
 /* 038
@@ -662,40 +668,127 @@ WHERE posicion = 1;
   in a given column.
 */
 
-
+/* I've selected 'salary' as the "given column" to identify employees 
+  who share a salary amount that appears exactly twice in the table.
+*/
+SELECT *
+FROM employees
+WHERE salary IN (
+    SELECT salary
+    FROM employees
+    GROUP BY salary
+    HAVING COUNT(*) = 2
+);
 
 /* 039
   Run a query that lists employees who are in departments with fewer than 10 employees.
 */
-
+SELECT
+    e.employee_id,
+    e.first_name,
+    e.last_name,
+    e.department_id
+FROM employees e
+WHERE (
+    SELECT COUNT(*)
+    FROM employees e2
+    WHERE e2.department_id = e.department_id 
+) < 10;
 
 
 /* 040
   Develop a query that shows the highest salary among employees working in department 
   30 (department_id) and which employees earn that salary.
 */
-
+SELECT *
+FROM employees e
+WHERE e.department_id = 30
+  AND e.salary = (
+      SELECT MAX(salary)
+      FROM employees
+      WHERE department_id = 30
+  );
 
 
 /* 041
   Create a query that shows the departments where there are no employees.
 */
+-- Option A
+SELECT d.department_id, d.department_name
+FROM departments d
+WHERE NOT EXISTS (
+    SELECT 1 
+    FROM employees e 
+    WHERE e.department_id = d.department_id
+);
 
+-- Option B
+SELECT d.department_id, d.department_name
+FROM departments d
+LEFT JOIN employees e ON d.department_id = e.department_id
+WHERE e.employee_id IS NULL;
+
+-- Option C
+SELECT department_id, department_name
+FROM departments
+WHERE department_id NOT IN (
+    SELECT DISTINCT department_id 
+    FROM employees 
+    WHERE department_id IS NOT NULL
+);
 
 
 /* 042
   Develop a query that shows all employees who are not working in department 30 and 
   who earn more than all employees working in department 30.
 */
+-- Option A
+SELECT e.first_name, e.last_name
+FROM employees e
+WHERE e.department_id <> 30
+AND e.salary > ALL (
+	SELECT e1.salary
+	FROM employees e1
+	WHERE e1.department_id = 30
+);
 
+-- Option B
+SELECT e.first_name, e.last_name
+FROM employees e
+WHERE e.department_id <> 30
+AND e.salary > (
+    SELECT MAX(e1.salary)
+    FROM employees e1
+    WHERE e1.department_id = 30
+);
 
+-- Option C
+SELECT e.first_name, e.last_name
+FROM employees e
+WHERE e.department_id <> 30
+AND e.salary > ALL (
+	SELECT e1.salary
+	FROM employees e1
+	WHERE e1.department_id = 30 
+      AND e1.salary IS NOT NULL -- security filter
+);
 
 /* 043
   Perform a query that shows employees who are managers (manager_id) and the number 
   of employees reporting to each one, sorted in descending order by number of subordinates. 
   Exclude managers who have 5 or fewer employees reporting to them.
 */
-
+SELECT 
+    manager_id, 
+    COUNT(*) AS total_subordinates
+FROM employees
+-- Exclude employees who do not have a manager (e.g., the CEO)
+WHERE manager_id IS NOT NULL  
+GROUP BY manager_id
+-- Only include managers who have more than 5 subordinates
+HAVING COUNT(*) > 5           
+-- Sort the results starting with the manager who has the most subordinates
+ORDER BY total_subordinates DESC;
 
 
 /* 044
@@ -707,7 +800,32 @@ WHERE posicion = 1;
 	c) Sort the information by employee code in ascending order.
 	d) Do not select those from the finance department.
 */
-
+SELECT 
+    e.employee_id AS "Employee Code",
+    e.last_name AS "Last Name",
+    e.salary AS "Salary",
+    r.region_name AS "Region Name",
+    c.country_name AS "Country Name",
+    l.state_province AS "Province Status",
+    d.department_id AS "Department Code",
+    d.department_name AS "Department Name"
+FROM employees e
+JOIN departments d ON e.department_id = d.department_id
+JOIN locations l ON d.location_id = l.location_id
+JOIN countries c ON l.country_id = c.country_id
+JOIN regions r ON c.region_id = r.region_id
+WHERE e.salary > (
+    -- Subquery to calculate the average salary for the current employee's department
+    SELECT AVG(e2.salary)
+    FROM employees e2
+    WHERE e2.department_id = e.department_id
+)
+-- Condition: Exclude employees from the state of Texas
+AND (l.state_province <> 'Texas' OR l.state_province IS NULL)
+-- Condition: Exclude employees from the Finance department
+AND d.department_name <> 'Finance'
+-- Final requirement: Sort by employee code in ascending order
+ORDER BY e.employee_id ASC;
 
 
 
