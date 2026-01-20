@@ -459,13 +459,27 @@ ORDER BY COUNT(e.employee_id) DESC;
   Develop a query that displays the number of employees per department, sorted 
   alphabetically by department name.
 */
-
+SELECT 
+    d.department_name,
+    COUNT(e.employee_id) AS 'Total Employees'
+FROM employees e
+JOIN departments d ON e.department_id = d.department_id 
+GROUP BY d.department_id, d.department_name 
+ORDER BY d.department_name ASC;
 
 
 /* 027
   Perform a query that shows the number of departments per region.
 */
-
+SELECT 
+    r.region_name,
+    COUNT(d.department_id) AS total_departments
+FROM regions r
+LEFT JOIN countries c ON r.region_id = c.region_id
+LEFT JOIN locations l ON c.country_id = l.country_id
+LEFT JOIN departments d ON l.location_id = d.location_id -- Aquí estaba el error
+GROUP BY r.region_id, r.region_name
+ORDER BY total_departments DESC;
 
 
 /* 028
@@ -473,7 +487,14 @@ ORDER BY COUNT(e.employee_id) DESC;
   sorted in descending order by salary paid. The code and name of the department 
   and the salary paid will be displayed.
 */
-
+SELECT 
+    d.department_id,
+    d.department_name,
+    SUM(e.salary) AS total_salary_paid
+FROM employees e 
+JOIN departments d ON e.department_id = d.department_id 
+GROUP BY d.department_id, d.department_name 
+ORDER BY total_salary_paid DESC; 
 
 
 /* 029
@@ -481,15 +502,40 @@ ORDER BY COUNT(e.employee_id) DESC;
   salary for all employees by year of hire. Sort the results by year of hire 
   (most recent first).
 */
+SELECT 
+    EXTRACT(YEAR FROM e.hire_date) AS hire_year,
+    MIN(e.salary) AS lowest_salary,
+    MAX(e.salary) AS highest_salary,
+    ROUND(AVG(e.salary), 2) AS average_salary
+FROM employees e 
+GROUP BY hire_year
+ORDER BY hire_year DESC; 
 
-
+-- Improve the same query
+SELECT 
+    CAST(EXTRACT(YEAR FROM e.hire_date) AS CHAR) AS hire_year, -- Lo convierte a texto
+    MIN(e.salary) AS lowest,
+    MAX(e.salary) AS highest,
+    ROUND(AVG(e.salary), 2) AS average
+FROM employees e 
+GROUP BY hire_year
+ORDER BY hire_year DESC;
 
 /* 030
   Develop a query that displays the department code with the title “Department Code,” 
   the job code with the title “Job Position,” and counts the employees in departments 
   50 and 80, sorting the results by department and job position.
 */
-
+SELECT 
+	d.department_id AS 'Department Code',
+	j.job_id  AS 'Job Position',
+	COUNT(e.employee_id) AS 'Employee Count'
+FROM departments d 
+JOIN employees e ON d.department_id = e.department_id 
+JOIN jobs j ON e.job_id = j.job_id 
+WHERE d.department_id IN (50, 80)
+GROUP BY d.department_id, j.job_id
+ORDER BY d.department_id ASC, j.job_id ASC ;
 
 
 /* 031
@@ -497,8 +543,27 @@ ORDER BY COUNT(e.employee_id) DESC;
   the job code with the title “Job Position,” and counts the employees by department 
   and job position, where the job position has only one employee in the company.
 */
+SELECT 
+	e.department_id AS 'Department Code',
+	e.job_id AS 'Job Position',
+	COUNT(e.employee_id) AS 'Employees by Department'
+FROM employees e 
+GROUP BY e.department_id, e.job_id 
+HAVING COUNT(*)=1 ;
 
-
+-- Improve the same query
+SELECT 
+    e.department_id AS 'Department Code',
+    e.job_id AS 'Job Position',
+    COUNT(e.employee_id) AS 'Employees by Department'
+FROM employees e 
+GROUP BY e.department_id, e.job_id 
+HAVING e.job_id IN (
+    SELECT job_id 
+    FROM employees 
+    GROUP BY job_id 
+    HAVING COUNT(*) = 1
+);
 
 /* 032
   Perform a query that lists the number of employees per city who earn at least $5,000 
