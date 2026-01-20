@@ -569,7 +569,15 @@ HAVING e.job_id IN (
   Perform a query that lists the number of employees per city who earn at least $5,000 
   in salary. Omit cities that have fewer than 3 employees with that salary.
 */
-
+SELECT 
+	 l.city,
+	 COUNT(*) AS 'Total Employees'
+FROM employees e
+JOIN departments d ON e.department_id = d.department_id 
+JOIN locations l ON d.location_id = l.location_id 
+WHERE e.salary > 5000
+GROUP BY l.city 
+HAVING COUNT(*) > 3 ;
 
 
 /* 033
@@ -577,28 +585,69 @@ HAVING e.job_id IN (
   counting the employees per department for those departments that have more than 
   10 employees.
 */
-
+SELECT 
+    d.department_id AS "Department Code",
+    COUNT(*) AS "Total Employees per Department" 
+FROM employees e
+JOIN departments d ON e.department_id = d.department_id 
+GROUP BY d.department_id 
+HAVING COUNT(*) > 10; 
 
 
 /* 034
   Develop a query that lists the last name, first name, and salary of the employee 
   with the highest salary in all departments.
 */
-
+SELECT 
+    CONCAT(e.first_name, ' ', e.last_name) AS "Full Name",
+    e.salary
+FROM employees e
+WHERE e.salary = (
+    SELECT MAX(salary) 
+    FROM employees
+);
 
 
 /* 035
   Develop a query that displays the department code, first name, and last name of 
   employees only from departments where there are employees named ‘John’.
 */
-
-
-
+SELECT 
+    department_id,
+    first_name,
+    last_name 
+FROM employees
+WHERE department_id IN (
+    SELECT department_id 
+    FROM employees 
+    WHERE first_name = 'John'
+);
 /* 036
   Develop a query that lists the department code, first name, last name, and salary 
   of only the highest-paid employees in each department.
 */
+-- Versión simplificada si no necesitas validar contra la tabla departments
+SELECT 
+    e1.department_id,
+    e1.first_name,
+    e1.last_name,
+    e1.salary 
+FROM employees e1
+WHERE salary = (
+    SELECT MAX(salary)
+    FROM employees e2
+    WHERE e1.department_id = e2.department_id
+);
 
+-- Improve the query
+SELECT department_id, first_name, last_name, salary
+FROM (
+    SELECT 
+        department_id, first_name, last_name, salary,
+        RANK() OVER (PARTITION BY department_id ORDER BY salary DESC) as posicion
+    FROM employees
+) as tabla_ranking
+WHERE posicion = 1;
 
 
 /* 037
